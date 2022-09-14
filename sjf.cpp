@@ -2,6 +2,12 @@
 #include <iomanip>
 using namespace std;
 
+class Sjf{
+    public:
+    int n;
+    void timecalc(int bt[], int wt[], int tat[], int n, float &twt, float &ttat);
+    void sort(int arr[], int pId[]);
+};
 
 int check (int bt[], int n)
 {
@@ -22,28 +28,28 @@ int check (int bt[], int n)
     return flag;
 }
 
-//Selection Sorting
-void sort(int arr[],int pId[], int n)
+void Sjf :: sort(int bt[], int pId[]) 
 {
-    int temp, tempId, min;
+    //selection sorting
+    int temp, min;
     for(int i=0; i<n-1; i++)
     {
         min = i;
-        for(int j=i+1; j<n; j++)
-            if(arr[j]<arr[i])
+        for(int j=1; j<n; j++)
+            if(bt[j] < bt[i])
                 min = j;
-        //Process ID
-        tempId = pId[i];
-        pId[i] = min+1;
-        pId[min] = tempId;
-        //Process burst time
-        temp = arr[i];
-        arr[i] = arr[min];
-        arr[min] = temp;
+        //process ID
+        temp = pId[i];
+        pId[i] = pId[min];
+        pId[min] = temp;
+        //burst time
+        temp = bt[i];
+        bt[i] = bt[min];
+        bt[min] = temp;
     }
 }
 
-void timecalc(int bt[], int wt[], int tat[], int n, float &twt, float &ttat)
+void Sjf :: timecalc(int bt[], int wt[], int tat[], int n, float &twt, float &ttat)
 {
     //waiting time for 1st process is 0
     wt[0] = 0;
@@ -63,37 +69,36 @@ void timecalc(int bt[], int wt[], int tat[], int n, float &twt, float &ttat)
 }
 int main()
 {
-    int nprcss, pId[10], bt[10], tat[10], wt[10];
     float ttat = 0, twt = 0;
+    Sjf obj;
     cout << "Enter the number of processes (max 10) : ";
-    cin >> nprcss;
+    cin >> obj.n;
+    int pId[obj.n], bt[obj.n], tat[obj.n], wt[obj.n];
     cout << "Enter Burst time for each processes." << endl;
-    for(int i=0; i<nprcss; i++)
+    for(int i=0; i<obj.n; i++)
     {
         pId[i] = i+1;
         cout << "(Burst Time) P[" << i+1 << "] : ";
         cin >> bt[i];
     }
 
-
-
-    if(check(bt, nprcss) == 1)
+    if(check(bt, obj.n) == 1)
     {
-        sort(bt, pId, nprcss);
-        timecalc(bt, wt, tat, nprcss, twt, ttat);
+        obj.sort(bt, pId);
+        obj.timecalc(bt, wt, tat, obj.n, twt, ttat);
     }
     else
     {
-        timecalc(bt, wt, tat, nprcss, twt, ttat);
+        obj.timecalc(bt, wt, tat, obj.n, twt, ttat);
     }
     cout << endl;
     cout << "===================== Processes Details =====================" << endl;
     cout << "Processes\t Burst Time\t Waiting Time\t Turn Around Time" << endl;
-    for(int i=0; i<nprcss; i++)
+    for(int i=0; i<obj.n; i++)
     {
-        cout << setw(5) << "P[" << pId[i] << "]\t " << setw(14) << bt[i] << "\t " << setw(14)<< wt[i] << "\t " << setw(14) << tat[i] << endl; 
+        cout << setw(5) << "P[" << pId[i] << "]" << setw(16) << bt[i] << setw(16)<< wt[i] << setw(16) << tat[i] << endl; 
     }
-    cout << "Average Waiting Time = " << twt/nprcss << endl;
-    cout << "Average TurnAround Time = " << ttat/nprcss << endl;
+    cout << "Average Waiting Time = " << twt/obj.n << endl;
+    cout << "Average TurnAround Time = " << ttat/obj.n << endl;
     return 0;
 }
