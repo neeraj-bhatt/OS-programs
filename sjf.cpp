@@ -1,124 +1,94 @@
 #include <iostream>
+#include <iomanip>
 using namespace std;
 
-class node{
+class Fcfs{
+    int n;
     public:
-    int pId;
-    int arrivalT;
-    int burstT;
-    int waitingT;
-    int turnAt;
-    node* next;
-    node(){}
-    node(int id, int at, int bt){
-        arrivalT = at;
-        burstT = bt;
-        pId = id;
-        waitingT = 0;
-        turnAt = 0;
-        next = 0;
+    Fcfs(int n){
+        this->n = n;
     }
+    void waitingt(int wt[], int bt[], int tat[], float &twt);
+    void turnaroundt(int at[], int tat[], int bt[], int ct[], int wt[], float &ttat);
+
 };
 
-
-void displayPrcs(node* head){
-    cout << "-------Processes-------" << endl;
-    cout << "Process \tArrivalTime \tBurstTime" << endl;
-    while(head != NULL){
-        cout << "P[" << head->pId << "] : \t\t" << head->arrivalT << " \t\t" << head->burstT << endl;
-        head = head->next;
+void Fcfs :: waitingt(int wt[], int bt[], int tat[], float &twt)
+{
+    for(int i=0; i<n; i++){
+        wt[i] = tat[i] - bt[i];
+        twt += wt[i];
     }
-}
 
-void displayCalc(node* head){
-    cout << "===============Processes===============" << endl;
-    cout << "Process \tArrivalTime \tBurstTime \tWaitingTime \tTurnAroundTime"<< endl;
-    while(head != NULL){
-        cout << "P["<<head->pId << "] :\t\t"<<head->arrivalT<<"\t\t"<<head->burstT<<"\t\t"<<head->waitingT<<"\t\t"<<head->turnAt << endl;
-        head = head->next;
-    }
 }
-
-node* timeCalc(node* head, float &avgwtime, float &avgttime){
-    node* ptr = head;
-    node* p = NULL;
-    int count = 1;
-    if(ptr->arrivalT == 0)
-        ptr->waitingT = 0;
-    else
-        ptr->waitingT = ptr->arrivalT;
-    ptr->turnAt = ptr->burstT;
-    avgwtime = ptr->waitingT;
-    avgttime = ptr->turnAt;
-    while(ptr->next != NULL){
-        p = ptr;
-        ptr = ptr->next;
-        ptr->waitingT = p->waitingT + p->burstT;
-        ptr->turnAt = ptr->waitingT + ptr->burstT;
-        avgwtime += ptr->waitingT;
-        avgttime += ptr->turnAt;
-        count++;
-    }
-    avgwtime = avgwtime/count;
-    avgttime = avgttime/count;
-    return head;
-}
-node* insertLL(node* head){
-    int at, bt;
-    int pcount = 1;
-    char ch = 'y';
-    while(ch == 'y' || ch == 'Y'){
-        cout << "Enter Arrival Time P[" << pcount << "] : ";
-        cin >> at;
-        cout << "Enter Burst Time P[" << pcount << "] : ";
-        cin >> bt;
-        node* t = new node(pcount, at, bt);
-        if(head == NULL)
-            head = t;
+void Fcfs :: turnaroundt(int at[], int tat[], int bt[], int ct[], int wt[], float &ttat)
+{
+    ct[0] = bt[0];
+    //calculating complition time
+    for(int i=1; i<n; i++)
+    {
+        if(at[i] > ct[i-1])
+            ct[i] = at[i] + bt[i];
         else{
-            node* ptr = head;
-            node* p = NULL;
-            if(at < ptr->arrivalT || (at == ptr->arrivalT && bt < ptr->burstT)){
-                t->next = head;
-                head = t;
-            }
-            else{
-                while(at > ptr->arrivalT && ptr->next != NULL){
-                    p = ptr;
-                    ptr = ptr->next;
-                }
-                while(at == ptr->arrivalT && bt >= ptr->burstT && ptr->next != NULL){
-                    p = ptr;
-                    ptr = ptr->next;
-                }
-                if(at > ptr->arrivalT || (at == ptr->arrivalT && bt >= ptr->burstT)){
-                    ptr->next = t;
-                }
-                else{
-                    p->next = t;
-                    t->next = ptr;
-                }
+            ct[i] = bt[i] + ct[i-1];
+        }
+    }
+
+    //calculating turn around time
+    for(int i=0; i<n; i++)
+    {
+        tat[i] = ct[i] - at[i];
+        ttat += tat[i];
+    }
+}
+
+void sorting(int pID[], int at[], int bt[], int n){
+    int temp;
+    for(int i=0; i<n-1; i++){
+        for(int j=i; j<n; i++){
+            if(at[i] > at[j]){
+                temp = at[i];
+                at[i] = at[j];
+                at[j] = temp;
+                temp = pID[i];
+                pID[i] = pID[j];
+                pID[j] = temp;
+                temp = bt[i];
+                bt[i] = bt[j];
+                bt[i] = temp;
             }
         }
-        pcount += 1;
-        cout << "y to continue(anything else to exit) : ";
-        cin >> ch;
-
     }
-    displayPrcs(head);
-    return head;
 }
 
-int main(){
-    node* head = NULL;
-    float avgwtime = 0;
-    float avgttime = 0;
-    head = insertLL(head);
-    cout << "\nCalculating Waiting Time and TurnAround Time" << endl;
-    head = timeCalc(head, avgwtime, avgttime);
-    displayCalc(head);
+int main()
+{
+    int np;
+    cout << "Enter the number of processes : ";
+    cin >> np;
+    int bt[np], at[np], tat[np], wt[np], ct[np], pID[np];
+    Fcfs obj(np);
+    float ttat = 0, twt = 0;
+    
+    for(int i=0; i<np; i++)
+    {
+        pID[i] = i+1;
+        cout << "(Arrival Time) P[" << pID[i] << "] : ";
+        cin >> at[i];
+        cout << "(Burst Time) P[" << pID[i] << "] : ";
+        cin >> bt[i];
+    }
+    sorting(pID, at, bt, np);
+    obj.turnaroundt(at, tat, bt, ct, wt, ttat);
+    obj.waitingt(wt, bt, tat, twt);
     cout << endl;
-    cout << "Average Waiting time = " << avgwtime << endl;
-    cout << "Average TurnAround time = " << avgttime << endl;
+    cout << "===================== Processes Details =====================" << endl;
+    cout << "Processes\t Arrival Time\t Burst Time\t Waiting Time\t Turn Around Time" << endl;
+    for(int i=0; i<np; i++)
+    {
+        cout << setw(5) << "P[" << pID[i] << "] " << setw(16) << at[i] << setw(16) << bt[i] << setw(16) << wt[i] << setw(16) << tat[i] << endl; 
+    }
+    cout << "Average Waiting Time = " << twt/np << endl;
+    cout << "Average TurnAround Time = " << ttat/np << endl;
     return 0;
 }
