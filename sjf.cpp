@@ -1,94 +1,126 @@
 #include <iostream>
-#include <iomanip>
+#include<iomanip>
+#define MAX 100
+
 using namespace std;
 
-class Fcfs{
-    int n;
-    public:
-    Fcfs(int n){
-        this->n = n;
-    }
-    void waitingt(int wt[], int bt[], int tat[], float &twt);
-    void turnaroundt(int at[], int tat[], int bt[], int ct[], int wt[], float &ttat);
+class SJF
+{
+  public:
+    string unit;
+    int pid[MAX];
+    float bt[MAX];
+    float at[MAX];
+    float ct[MAX];
+    float wt[MAX];
+    float tt[MAX];
+    float completed[MAX];
+    int start, total;
+    
+    SJF();
 
+    void calculate(int);
+
+    void avg_waiting_time(int);
+    void avg_turn_around_time(int);
 };
 
-void Fcfs :: waitingt(int wt[], int bt[], int tat[], float &twt)
+SJF::SJF()
 {
-    for(int i=0; i<n; i++){
-        wt[i] = tat[i] - bt[i];
-        twt += wt[i];
-    }
-
+  start = 0;
+  total = 0;
+  cout << "\nEnter the unit: ";
+  cin >> unit;
 }
-void Fcfs :: turnaroundt(int at[], int tat[], int bt[], int ct[], int wt[], float &ttat)
-{
-    ct[0] = bt[0];
-    //calculating complition time
-    for(int i=1; i<n; i++)
-    {
-        if(at[i] > ct[i-1])
-            ct[i] = at[i] + bt[i];
-        else{
-            ct[i] = bt[i] + ct[i-1];
-        }
-    }
 
-    //calculating turn around time
+void SJF::calculate(int n)
+{
+  while(total != n)
+  {
+    int c=n, minim=999;
     for(int i=0; i<n; i++)
     {
-        tat[i] = ct[i] - at[i];
-        ttat += tat[i];
+      if(at[i] <= start && completed[i] != 1 && bt[i] < minim)
+      {
+        minim = bt[i];
+        c = i;
+      }
     }
+    if(c == n)
+      start++;
+    else
+    {
+      ct[c] = start + bt[c];
+      start += bt[c];
+      tt[c] = ct[c] - at[c];
+      wt[c] = tt[c] - bt[c];
+      completed[c] = 1;
+      pid[total] = c + 1;
+      total++;
+    }
+  }
 }
 
-void sorting(int pID[], int at[], int bt[], int n){
-    int temp;
-    for(int i=0; i<n-1; i++){
-        for(int j=i; j<n; i++){
-            if(at[i] > at[j]){
-                temp = at[i];
-                at[i] = at[j];
-                at[j] = temp;
-                temp = pID[i];
-                pID[i] = pID[j];
-                pID[j] = temp;
-                temp = bt[i];
-                bt[i] = bt[j];
-                bt[i] = temp;
-            }
-        }
-    }
+void  SJF::avg_waiting_time(int n)
+{
+  float twt = 0, awt;
+  for(int i=0; i<n; i++)
+  {
+    twt = twt + wt[i];
+  }
+  awt = twt/n;
+  cout << awt << unit;
+}
+
+void  SJF::avg_turn_around_time(int n)
+{
+  float ttt = 0, att;
+  for(int i=0; i<n; i++)
+  {
+    ttt = ttt + tt[i];
+  }
+  att = ttt/n;
+  cout << att << unit;
 }
 
 int main()
 {
-    int np;
-    cout << "Enter the number of processes : ";
-    cin >> np;
-    int bt[np], at[np], tat[np], wt[np], ct[np], pID[np];
-    Fcfs obj(np);
-    float ttat = 0, twt = 0;
-    
-    for(int i=0; i<np; i++)
-    {
-        pID[i] = i+1;
-        cout << "(Arrival Time) P[" << pID[i] << "] : ";
-        cin >> at[i];
-        cout << "(Burst Time) P[" << pID[i] << "] : ";
-        cin >> bt[i];
-    }
-    sorting(pID, at, bt, np);
-    obj.turnaroundt(at, tat, bt, ct, wt, ttat);
-    obj.waitingt(wt, bt, tat, twt);
+  cout << "========== SJF scheduling algorithm ==========";
+  SJF ob;
+  int n;
+  cout << "\nEnter the no. of processes : ";
+  cin >> n;
+  cout << endl;
+  
+  for(int i=0; i<n; i++)
+  {
+    cout << "Process " << i+1 << endl;
+    cout << "Enter the arrival time : ";
+    cin >> ob.at[i];
+    cout << "Enter the burst time : ";
+    cin >> ob.bt[i];
+    ob.pid[i] = i+1;
+    ob.completed[i] = 0;
     cout << endl;
-    cout << "===================== Processes Details =====================" << endl;
-    cout << "Processes\t Arrival Time\t Burst Time\t Waiting Time\t Turn Around Time" << endl;
-    for(int i=0; i<np; i++)
-    {
-        cout << setw(5) << "P[" << pID[i] << "] " << setw(16) << at[i] << setw(16) << bt[i] << setw(16) << wt[i] << setw(16) << tat[i] << endl; 
-    }
-    cout << "Average Waiting Time = " << twt/np << endl;
-    cout << "Average TurnAround Time = " << ttat/np << endl;
-    return 0;
+  }
+
+  ob.calculate(n);
+  cout << "\nProcess Id\tArrival Time\tBurst Time\tCompletetion Time\tWaiting Time\tTurn Around Time\n";
+  cout << "=============================================================================================================\n";
+  for(int j=0; j<n; j++)
+  {
+    int x = ob.pid[j];
+    cout << fixed << setprecision(2);
+    cout << setw(5) << ob.pid[j]
+        << setw(16) << ob.at[x-1] << ob.unit
+        << setw(15) << ob.bt[x-1] << ob.unit
+        << setw(15) << ob.ct[x-1] << ob.unit
+        << setw(20) << ob.wt[x-1] << ob.unit
+        << setw(20) << ob.tt[x-1] << ob.unit << "\n";
+  }
+  cout << "\nAverage Waiting Time: ";
+  ob.avg_waiting_time(n);
+  cout << "\nAverage Turn Around Time: ";
+  ob.avg_turn_around_time(n);
+  cout << endl;
 }
